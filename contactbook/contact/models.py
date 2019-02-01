@@ -3,7 +3,7 @@ from django.db import models
 
 
 class ContactBook(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, db_index=True)
     # for audit logs
     created_by = models.ForeignKey(User, null=True, related_name='contact_books_created_by', on_delete=models.CASCADE)
     changed_by = models.ForeignKey(User, null=True, related_name='contact_books_changed_by', on_delete=models.CASCADE)
@@ -20,8 +20,8 @@ class ContactBook(models.Model):
 
 
 class Contact(models.Model):
-    name = models.CharField(max_length=255)  # accepts UTF-8
-    email = models.EmailField(max_length=254)  # As described in RFC3696 Errata ID 1690
+    name = models.CharField(max_length=255, db_index=True)  # accepts UTF-8
+    email = models.EmailField(max_length=254, db_index=True)  # As described in RFC3696 Errata ID 1690
     contact_book = models.ForeignKey(to=ContactBook, on_delete=models.CASCADE, related_name='contacts')
 
     # for audit logs

@@ -5,8 +5,8 @@ from . import views
 urlpatterns = [
     # Contact Book URLS
     re_path(r'^contact-book-list/$', views.ContactBookListView.as_view(), name='contact_book_list'),
-    re_path(r'^contact-book-create/$', views.ContactBookViewSet.as_view({'post': 'create'}),
-            name='contact_book_create'),
+    re_path(r'^contact-book-create/$', views.ContactBookViewSet.as_view(
+        {'post': 'create'}), name='contact_book_create'),
     re_path(r'^contact-book-retrieve/(?P<pk>[0-9]+)/$', views.ContactBookViewSet.as_view(
         {'get': 'retrieve'}), name='contact_book_retrieve'),
     re_path(r'^contact-book-update/(?P<pk>[0-9]+)/$', views.ContactBookViewSet.as_view(
@@ -20,8 +20,8 @@ urlpatterns = [
 
     # Contact  URLS
     re_path(r'^contact-list/$', views.ContactListView.as_view(), name='contact_list'),
-    re_path(r'^contact-create/$', views.ContactViewSet.as_view({'post': 'create'}),
-            name='contact_create'),
+    re_path(r'^contact-create/$', views.ContactViewSet.as_view(
+        {'post': 'create'}), name='contact_create'),
     re_path(r'^contact-retrieve/(?P<pk>[0-9]+)/$', views.ContactViewSet.as_view(
         {'get': 'retrieve'}), name='contact_retrieve'),
     re_path(r'^contact-update/(?P<pk>[0-9]+)/$', views.ContactViewSet.as_view(
