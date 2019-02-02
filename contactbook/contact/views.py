@@ -7,7 +7,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from contact.filters import ContactBookFilter
+from contact.filters import ContactBookFilter, ContactFilter
 from contact.models import ContactBook, Contact
 from contact.search import CustomSearch
 from contact.serializers import ContactBookSerializer, ContactSerializer
@@ -51,10 +51,8 @@ class ContactBookViewSet(viewsets.ViewSet):
     """
 
     def create(self, request):
-        """
-        :param request:
-        :return:
-        """
+        if 'name' not in request.data:
+            return Response(data={"error": "Please specify name of contact book"}, status=status.HTTP_400_BAD_REQUEST)
         request.data["created_by"] = self.request.user.username
         request.data["changed_by"] = self.request.user.username
         serializer = ContactBookSerializer(data=request.data)
@@ -130,7 +128,11 @@ class ContactBookViewSet(viewsets.ViewSet):
         return error_response(status=status.HTTP_400_BAD_REQUEST, msg="{} does not exists".format(pk), data={})
 
     def hard_delete(self, request, pk):
-        contact_book = get_or_none(ContactBook, id=pk)
+        try:
+            contact_book = ContactBook.objects.get(id=pk)
+        except ContactBook.DoesNotExist:
+            contact_book=None
+            return error_response(status=status.HTTP_400_BAD_REQUEST, msg="{} does not exists".format(pk), data={})
         if isinstance(contact_book, ContactBook):
             ContactBook.objects.filter(id=pk).delete()
             print(ContactBook.objects.filter(id=pk))
@@ -230,11 +232,11 @@ class ContactViewSet(viewsets.ViewSet):
 
 
 class ContactListView(generics.ListAPIView):
-    serializer_class = ContactBookSerializer
+    serializer_class = ContactSerializer
     filter_backends = (CustomSearch, filters.OrderingFilter, DjangoFilterBackend)
-    filter_class = ContactBookFilter
+    filter_class = ContactFilter
     ordering_fields = ('-id',)
-    search_fields = ('id', 'name')
+    search_fields = ('id', 'name','email')
 
     def list(self, request, *args, **kwargs):
         """
@@ -245,7 +247,7 @@ class ContactListView(generics.ListAPIView):
         """
         queryset = self.filter_queryset(self.get_queryset())
 
-        data = {"status": "Success", "status_code": status.HTTP_200_OK, "msg": "Contact Books"}
+        data = {"status": "Success", "status_code": status.HTTP_200_OK, "msg": "Contact"}
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -273,6 +275,24 @@ class UserLogin(ObtainAuthToken):
         :param kwargs:
         :return:
         """
+        if not request.data.get('password', None) and not request.data.get('username', None):
+            return Response({
+                'status': 'Error',
+                'msg': 'Please provide username and password.',
+                'status_code': status.HTTP_400_BAD_REQUEST},
+                status=status.HTTP_400_BAD_REQUEST)
+        if not request.data.get('username', None):
+            return Response({
+                'status': 'Error',
+                'msg': 'Please provide username.',
+                'status_code': status.HTTP_400_BAD_REQUEST},
+                status=status.HTTP_400_BAD_REQUEST)
+        if not request.data.get('password', None):
+            return Response({
+                'status': 'Error',
+                'msg': 'Please provide password.',
+                'status_code': status.HTTP_400_BAD_REQUEST},
+                status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = serializer.validated_data['user']
@@ -285,15 +305,14 @@ class UserLogin(ObtainAuthToken):
             }, status=status.HTTP_200_OK)
             return response
         response = Response({
-            'status': 'failure',
-            'msg': 'Login Unsuccessful',
-            'status_code': status.HTTP_400_BAD_REQUEST},
-            status=status.HTTP_400_BAD_REQUEST)
+            'status': 'Error',
+            'msg': 'Incorrect username or password.',
+            'status_code': status.HTTP_401_UNAUTHORIZED},
+            status=status.HTTP_401_UNAUTHORIZED)
         return response
 
 
 class UserLogout(APIView):
-    @staticmethod
     def delete(self, request, format=None):
         """
         # simply delete the token to force a login
@@ -303,4 +322,4 @@ class UserLogout(APIView):
         :return:
         """
         request.user.auth_token.delete()
-        return Response({'status': 'success', 'msg': 'Logout Successfull'}, status=status.HTTP_200_OK)
+        return Response({'status': 'success', 'msg': 'Logout Successful'}, status=status.HTTP_200_OK)

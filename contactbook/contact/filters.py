@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from contact.models import ContactBook
+from contact.models import ContactBook, Contact
 
 
 class ContactBookFilter(filters.FilterSet):
@@ -16,5 +16,5 @@ class ContactFilter(filters.FilterSet):
     email = filters.CharFilter(field_name="email", label="Contact Email", lookup_expr='iexact')
 
     class Meta:
-        model = ContactBook
+        model = Contact
         fields = ['name', 'email']
