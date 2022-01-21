@@ -4,7 +4,7 @@ decorator==4.3.2
 Django==2.1.5
 django-filter==2.1.0
 djangorestframework==3.9.1
-ipython==7.2.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.13.2
 parso==0.3.2
